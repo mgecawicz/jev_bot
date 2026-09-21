@@ -1,0 +1,81 @@
+{
+  "action": {
+    "type": "choice",
+    "instructions": {
+      "question": "Which single movement should the bot make next?",
+      "goal": "Reach and collect the target treasure as quickly as possible without driving into walls, obstacles, or other bots.",
+      "read": [
+        "`target_treasure` is the one treasure to go for: its sector, its distance, and whether the straight `path` to it is clear or blocked. It can also be none. A blocked target is treated like no target: the bot explores until the path is clear.",
+        "`view` describes what the bot sees in each of its five forward sectors; `view.center` is straight ahead.",
+        "`more_open_side` is computed by code: left or right, the way to turn whenever a turn is needed for any reason other than facing a target whose path is clear.",
+        "`repetition` is computed by code about the bot's recent actions. If it is anything other than none, the bot is looping and the first job is to break the loop.",
+        "`recent_actions_newest_first` shows what the bot just did and whether each move succeeded; `last_action` is the most recent one."
+      ],
+      "priorities": [
+        "1. `repetition` says the last actions were all turns: do not turn. Go forward if `view.center` is clear, far or close; go backward only if `view.center` is very_close.",
+        "2. `repetition` says the bot is bouncing back and forth, reversed three times, or forward was blocked twice: do not go forward or backward. Turn toward `more_open_side`.",
+        "3. `target_treasure.sector` is center and `target_treasure.path` is clear: go forward.",
+        "4. `target_treasure.path` is clear and its sector is far_left or left: turn_left. `path` clear and sector right or far_right: turn_right.",
+        "5. `target_treasure` is none, or `target_treasure.path` is blocked: explore. Go forward if `view.center` is clear or far.",
+        "6. `target_treasure` is none, or `target_treasure.path` is blocked, and `view.center` shows something close or very_close: turn toward `more_open_side`.",
+        "7. All five sectors of `view` show something very_close: go backward."
+      ]
+    },
+    "criteria": {
+      "forward": {
+        "what": "Drive straight ahead along the current heading.",
+        "choose_when": "`target_treasure.sector` is center and `target_treasure.path` is clear; or `target_treasure` is none or its `path` is blocked, and `view.center` is clear or far; or `repetition` says the last actions were all turns and `view.center` is not very_close.",
+        "avoid_when": "`target_treasure.path` is clear and its sector is far_left, left, right or far_right; or `target_treasure` is none or its `path` is blocked, and `view.center` shows something close or very_close; or `repetition` says the bot is bouncing back and forth, reversed three times, or forward was blocked twice."
+      },
+      "backward": {
+        "what": "Reverse straight back along the current heading. The bot cannot see behind itself.",
+        "choose_when": "All five sectors of `view` show something very_close; or `repetition` says the last actions were all turns and `view.center` shows something very_close.",
+        "avoid_when": "Any sector of `view` is clear, far or close; or `repetition` says the bot is bouncing back and forth or reversed three times."
+      },
+      "turn_left": {
+        "what": "Rotate in place counter-clockwise, toward the far_left and left sectors. Does not change position.",
+        "choose_when": "`target_treasure.path` is clear and its sector is far_left or left; or `more_open_side` is left and any of these hold: `target_treasure` is none or its `path` is blocked while `view.center` shows something close or very_close, or `repetition` says bouncing back and forth, reversed three times, or forward blocked twice.",
+        "avoid_when": "`target_treasure.path` is clear and its sector is center, right or far_right; or `more_open_side` is right and `target_treasure` is none or its `path` is blocked; or `repetition` says the last actions were all turns."
+      },
+      "turn_right": {
+        "what": "Rotate in place clockwise, toward the right and far_right sectors. Does not change position.",
+        "choose_when": "`target_treasure.path` is clear and its sector is far_right or right; or `more_open_side` is right and any of these hold: `target_treasure` is none or its `path` is blocked while `view.center` shows something close or very_close, or `repetition` says bouncing back and forth, reversed three times, or forward blocked twice.",
+        "avoid_when": "`target_treasure.path` is clear and its sector is center, left or far_left; or `more_open_side` is left and `target_treasure` is none or its `path` is blocked; or `repetition` says the last actions were all turns."
+      }
+    }
+  },
+  "turn_amount": {
+    "type": "choice",
+    "instructions": {
+      "question": "If the bot turns next, how far should it rotate?",
+      "note": "Answer this even if turning is not the best move. The answer is only used when the chosen action is turn_left or turn_right. A slight turn is exactly one sector wide: it brings the left or right sector into the center. A sharp turn is two sectors wide: it brings far_left or far_right into the center."
+    },
+    "criteria": {
+      "slight": {
+        "what": "Rotate by one sector.",
+        "choose_when": "`target_treasure.path` is clear and its sector is left or right."
+      },
+      "sharp": {
+        "what": "Rotate by two sectors.",
+        "choose_when": "`target_treasure.path` is clear and its sector is far_left or far_right; or `target_treasure` is none or its `path` is blocked; or `repetition` is anything other than none."
+      }
+    }
+  },
+  "move_amount": {
+    "type": "choice",
+    "instructions": {
+      "question": "If the bot drives forward or backward next, how far should it go?",
+      "note": "Answer this even if driving is not the best move. The answer is only used when the chosen action is forward or backward."
+    },
+    "criteria": {
+      "short": {
+        "what": "A short move.",
+        "choose_when": "`target_treasure.sector` is center, its `path` is clear and its `distance` is very_close (a short move collects it); or `view.center` shows something close or very_close; or all five sectors of `view` show something very_close (the bot would be reversing blind)."
+      },
+      "long": {
+        "what": "A long move.",
+        "choose_when": "`view.center` is clear or far, and it is not the case that a target with a clear path is very_close in the center sector."
+      }
+    }
+  }
+}

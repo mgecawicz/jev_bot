@@ -1,0 +1,10 @@
+# secrets — the sketch reads the key from here if Config.pde leaves it blank
+data/typesafe_api_key.txt
+
+# Processing IDE / build artefacts
+*.autosave
+build/
+selftest.png
+
+# macOS
+.DS_Store
